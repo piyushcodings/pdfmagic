@@ -6,3 +6,4 @@ numpy
 pypdf 
 aiofiles
 PyPDF2
+nest_asyncio
