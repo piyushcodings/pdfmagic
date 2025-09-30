@@ -1,1 +1,2 @@
-worker: python main.py && python main2.py
+worker1: python main.py
+worker2: python main2.py
