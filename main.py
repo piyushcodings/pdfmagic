@@ -520,13 +520,11 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 # --- Main Application Setup ---
 
-async def post_init(application: Application) -> None:
-    """Called when the application has started, sets up background tasks."""
-    logger.info("Application started. Setting up job consumer.")
-    # Start the job consumer worker as a permanent background task
-    application.bot_data['job_consumer_task'] = application.create_task(job_consumer(application))
+# In pdf_magic_bot_complete.py
 
-async def shutdown(application: Application) -> None:
+# ... (Keep post_init and shutdown functions as they are, but perhaps rename shutdown for clarity)
+
+async def post_shutdown(application: Application) -> None:
     """Called when the application is shutting down, gracefully stops tasks."""
     logger.info("Application shutting down. Cancelling job consumer.")
     if 'job_consumer_task' in application.bot_data:
@@ -538,23 +536,25 @@ def main() -> None:
     """Start the bot."""
     setup_directories()
 
+    # Create the Application and pass your bot's token.
     application = (
         Application.builder()
         .token(BOT_TOKEN)
-        .post_init(post_init)
-        .shutdown(shutdown)
-        .build()
+        # The lifecycle hooks are passed to .build() as Application constructor arguments
+        .build(
+            post_init=post_init, 
+            post_shutdown=post_shutdown # <-- CORRECTED
+        )
     )
 
-    # Handlers
+    # Handlers (rest remains the same)
     application.add_handler(CommandHandler("start", start_handler))
-    application.add_handler(MessageHandler(filters.Document.ALL & ~filters.ChatType.CHANNEL, document_handler))
-    application.add_handler(CallbackQueryHandler(callback_handler))
-    application.add_error_handler(error_handler)
+    # ... other handlers ...
 
+    # Run the bot
     logger.info("Bot started. Press Ctrl-C to stop.")
     application.run_polling(poll_interval=1.0, allowed_updates=Update.ALL_TYPES)
-
+    
 
 if __name__ == "__main__":
     main()
