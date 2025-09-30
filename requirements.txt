@@ -1,7 +1,7 @@
 python-telegram-bot>=20.0
 pdf2image
 Pillow
-opencv-python
+opencv-python-headless
 numpy
 pypdf 
 aiofiles
