@@ -222,5 +222,17 @@ async def main():
 
 if __name__ == '__main__':
     import asyncio
-    asyncio.run(main())
+    import sys
+
+    # For Heroku / environments with existing event loop
+    try:
+        asyncio.run(main())
+    except RuntimeError as e:
+        if "Cannot close a running event loop" in str(e):
+            import nest_asyncio
+            nest_asyncio.apply()
+            import asyncio
+            asyncio.get_event_loop().run_until_complete(main())
+        else:
+            raise
   
