@@ -1,0 +1,6 @@
+python-telegram-bot>=20.0
+pdf2image
+Pillow
+opencv-python
+numpy
+pypdf 
