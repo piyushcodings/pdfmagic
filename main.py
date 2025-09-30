@@ -26,7 +26,7 @@ import numpy as np
 from pypdf import PdfReader, PdfWriter # Using pypdf, the modern successor to PyPDF2
 
 # --- Configuration ---
-BOT_TOKEN = "YOUR_TELEGRAM_BOT_TOKEN_HERE"
+BOT_TOKEN = "7966525096:AAHZz-HMAQb2_9EPmOBvlatqhyP16gQ3UFQ"
 LOG_LEVEL = logging.INFO
 BASE_DIR = "data"
 JOB_QUEUE: asyncio.Queue = asyncio.Queue()  # Global job queue
