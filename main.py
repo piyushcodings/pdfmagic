@@ -499,33 +499,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
-### Deployment Instructions
-
-This script is designed to run in a Linux environment that has the necessary system dependencies.
-
-#### 1. Prerequisites (System Dependencies)
-
-The `pdf2image` library requires the **Poppler** utility to be installed on your system.
-
-* **Ubuntu/Debian:**
-    ```bash
-    sudo apt-get update
-    sudo apt-get install poppler-utils
-    ```
-* **macOS (via Homebrew):**
-    ```bash
-    brew install poppler
-    ```
-
-#### 2. Python Dependencies
-
-Create a `requirements.txt` file:
-
-```txt
-python-telegram-bot>=20.0
-pdf2image
-Pillow
-opencv-python
-numpy
-pypdf # Or PyPDF2
