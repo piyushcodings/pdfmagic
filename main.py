@@ -543,10 +543,7 @@ def main() -> None:
     application = (
         Application.builder()
         .token(BOT_TOKEN)
-        .build(
-            post_init=post_init,        # Correctly passed as keyword argument to build()
-            post_shutdown=post_shutdown # Correctly passed as keyword argument to build()
-        )
+        
     )
 
     # Handlers
