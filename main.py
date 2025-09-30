@@ -518,19 +518,6 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         logger.error(f"Failed to send error message to user: {e}")
 
 
-async def post_init(application: Application) -> None:
-    """Called when the application has started, sets up background tasks."""
-    logger.info("Application started. Setting up job consumer.")
-    # Start the job consumer worker as a permanent background task
-    application.bot_data['job_consumer_task'] = application.create_task(job_consumer(application))
-
-async def post_shutdown(application: Application) -> None:
-    """Called when the application is shutting down, gracefully stops tasks."""
-    logger.info("Application shutting down. Cancelling job consumer.")
-    # Cancel the job consumer task
-    if 'job_consumer_task' in application.bot_data:
-        application.bot_data['job_consumer_task'].cancel()
-    logger.info("Shutdown complete.")
 
 
 # --- Main Application Setup ---
@@ -540,11 +527,7 @@ def main() -> None:
     setup_directories()
 
     # Create the Application with the corrected builder syntax (Fixes NameError and AttributeError)
-    application = (
-        Application.builder()
-        .token(BOT_TOKEN)
-        
-    )
+    application = ApplicationBuilder().token(BOT_TOKEN).build()
 
     # Handlers
     application.add_handler(CommandHandler("start", start_handler))
