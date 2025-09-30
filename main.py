@@ -424,11 +424,11 @@ async def document_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handles button presses for processing options."""
     query = update.callback_query
-    await query.answer() 
+    await query.answer() # Acknowledge the button press
     
     task_action = query.data
-    file_info = context.user_data.get('current_file')
     
+    file_info = context.user_data.get('current_file')
     if not file_info:
         await query.edit_message_text(
             "🚫 Error: Please send the PDF file again before selecting an option."
@@ -441,9 +441,15 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     
     # Check if a job for this file is already running (simple check)
     if file_id in PROCESSING_STATUS:
-        await query.edit_message_text(
-            f"🚫 A job for this file is already in status: {PROCESSING_STATUS[file_id]['status']}"
-        )
+        # Check if the message is already reporting progress
+        if PROCESSING_STATUS[file_id]['progress_message_id'] == query.message.message_id:
+             await query.edit_message_text(
+                f"🚫 A job for this file is already in status: **{PROCESSING_STATUS[file_id]['status']}**",
+                parse_mode='Markdown'
+            )
+        else:
+             # This is a different message, but same file ID (less likely scenario)
+             await query.edit_message_text("🚫 Please wait for the current job for this file to finish.")
         return
     
     # Determine the job name and output suffix
@@ -461,10 +467,12 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     downloaded_file = await context.bot.get_file(file_id)
     unique_id = str(uuid.uuid4())
     input_path = os.path.join(BASE_DIR, 'input', f"{unique_id}_original.pdf")
+    # Clean up name for output
     base_name = os.path.splitext(original_name)[0].replace(' ', '_')
     output_path = os.path.join(BASE_DIR, 'output', f"{base_name}{suffix}")
     
     try:
+        # Download file synchronously (quick enough)
         await downloaded_file.download_to_drive(input_path)
     except Exception as e:
         logger.error(f"File download failed for {file_id}: {e}")
@@ -478,20 +486,23 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         "You will receive real-time updates shortly...",
         parse_mode='Markdown'
     )
-    progress_message_id = query.edited_message.message_id
+    
+    # FIX: Get the message ID from the message attached to the query object (query.message)
+    # This is the message whose text we just edited.
+    progress_message_id = query.message.message_id
     
     # 3. Setup global status and add job to queue
     PROCESSING_STATUS[file_id] = {
         'status': 'QUEUED',
         'task_name': task_name,
         'chat_id': query.message.chat_id,
-        'progress_message_id': progress_message_id,
+        'progress_message_id': progress_message_id, # CORRECT ID USED HERE
         'start_time': time.time(),
         'total_bytes': original_size,
         'input_path': input_path,
         'output_path': output_path,
         'current_step': 0,
-        'total_steps': 1, # Updated inside the processing job
+        'total_steps': 1, # Will be updated in the job worker
     }
     
     job_payload = {
@@ -504,7 +515,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     }
     await JOB_QUEUE.put(job_payload)
     logger.info(f"Job added to queue: {file_id} - Queue size: {JOB_QUEUE.qsize()}")
-
+    
 
 async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Log the error and send a user-friendly message."""
